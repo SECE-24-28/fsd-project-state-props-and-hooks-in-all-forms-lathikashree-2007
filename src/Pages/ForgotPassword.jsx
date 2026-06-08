@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [info, setInfo] = useState({ text: '', type: '' });
-  const navigate = useNavigate();
+  //const navigate = useNavigate();
 
   const handleForgot = (e) => {
     e.preventDefault();
