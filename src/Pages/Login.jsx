@@ -1,79 +1,83 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
-function Login({ onLoginSuccess }) {
+export default function Login({ onLoginSuccess, isAuthenticated }) {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [isVerifying, setIsVerifying] = useState(false); // UI Loading Animation State
-  
-  const navigate = useNavigate(); // This is the navigation engine pointer
 
-  const handleFormSubmit = (e) => {
+  const handleLoginSubmit = (e) => {
     e.preventDefault();
-    setErrorMessage('');
-    
-    if (!email || !password) {
-      setErrorMessage('Please fill in all security fields.');
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    // 1. If it's the admin email, instantly log in as admin (password can be anything)
+    if (cleanEmail === "admin@fashionhub.com") {
+      alert("⚡ Welcome back, Administrator. (Any Password Accepted)");
+      onLoginSuccess({ 
+        name: "Admin Manager", 
+        email: cleanEmail, 
+        role: "admin" 
+      });
+      navigate('/admin');
       return;
     }
 
-    // Trigger professional UI skeleton loading verification state
-    setIsVerifying(true);
+    // 2. For ANY other email/password combination, auto-generate a valid user profile instantly
+    // Extracting a clean display name from the email prefix (e.g., "john" from "john@gmail.com")
+    const emailPrefix = cleanEmail.split('@')[0];
+    const generatedName = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
 
-    // Simulate an API network authentication handshake delay
-    setTimeout(() => {
-      setIsVerifying(false);
+    const universalUser = {
+      name: generatedName || "Premium Shopper",
+      email: cleanEmail,
+      phone: "9876543210",
+      address: "402, Sapphire Block, Bangalore - 560102"
+    };
 
-      // 1. Core Administrative Login Verification Route
-      if (email === "admin@fashionhub.com") {
-        onLoginSuccess({ email, name: "System Administrator" });
-        alert("🛡️ Admin Clearance Granted. Redirecting to Management Dashboard...");
-        navigate('/admin'); // Force browser push to admin console page!
-      } 
-      // 2. Standard Consumer User Login Route
-      else {
-        onLoginSuccess({ email, name: "Alex Harrison" });
-        alert("🎉 Verification successful! Welcome to FASHIONHUB.");
-        navigate('/'); // Force browser push back to marketplace homepage layout!
-      }
-    }, 900); // 900ms micro-loading effect for production realism
+    alert(`👋 Welcome back, ${universalUser.name}! (Universal Access Bypass)`);
+    onLoginSuccess(universalUser);
+    navigate('/profile');
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '75vh', padding: '0 20px' }}>
-      <div style={{ width: '100%', maxWidth: '400px', background: 'var(--card-bg, #fff)', padding: '30px', borderRadius: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.05)' }}>
-        <h2 style={{ fontSize: '1.6rem', fontWeight: '800', marginBottom: '6px', letterSpacing: '-0.5px' }}>Verify Your Identity</h2>
-        <p style={{ color: '#666', fontSize: '0.85rem', marginBottom: '24px' }}>Access your personalized style portfolios and secure bag.</p>
-
-        {errorMessage && (
-          <div style={{ background: '#ffeded', color: '#d93838', padding: '10px 14px', borderRadius: '4px', fontSize: '0.8rem', marginBottom: '15px', fontWeight: '600' }}>
-            ⚠️ {errorMessage}
-          </div>
-        )}
-
-        <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#444', marginBottom: '6px', textTransform: 'uppercase' }}>Email Address</label>
-            <input type="email" placeholder="e.g., admin@fashionhub.com or user@mail.com" value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: '100%', padding: '12px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '0.9rem', background: 'transparent' }} required />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#444', marginBottom: '6px', textTransform: 'uppercase' }}>Secure Password</label>
-            <input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} style={{ width: '100%', padding: '12px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '0.9rem', background: 'transparent' }} required />
-          </div>
-
-          <button type="submit" disabled={isVerifying} style={{ width: '100%', padding: '14px', background: '#d4af37', color: '#111', border: 'none', borderRadius: '4px', fontWeight: '700', cursor: isVerifying ? 'not-allowed' : 'pointer', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '10px', transition: 'all 0.2s', opacity: isVerifying ? 0.7 : 1 }}>
-            {isVerifying ? 'Verifying Credentials...' : 'Verify & Login'}
-          </button>
-        </form>
-
-        <div style={{ marginTop: '20px', padding: '12px', background: '#f9f9f9', borderRadius: '4px', fontSize: '0.75rem', color: '#666', lineHeight: '1.4' }}>
-          💡 <strong>Project Demo Pro-Tip:</strong> Use <code>admin@fashionhub.com</code> to instantly unlock the interactive SVG Admin & Analytics Dashboard charts.
+    <div style={styles.authWrapper}>
+      <h2 style={{ marginBottom: '8px', fontSize: '26px', fontWeight: 'bold' }}>Sign In</h2>
+      <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>Access your personalized user profile and track your orders.</p>
+      
+      <form onSubmit={handleLoginSubmit} style={styles.formStructure}>
+        <div style={styles.inputGroup}>
+          <label style={styles.label}>Email Address *</label>
+          <input type="email" required placeholder="any-email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} style={styles.field} />
         </div>
+
+        <div style={styles.inputGroup}>
+          <label style={styles.label}>Account Password *</label>
+          <input type="password" required placeholder="anything-works" value={password} onChange={(e) => setPassword(e.target.value)} style={styles.field} />
+        </div>
+
+        <div style={{ textAlign: 'right', margin: '-5px 0 10px 0' }}>
+          <Link to="/forgot-password" style={styles.inlineLink}>Forgot Password?</Link>
+        </div>
+
+        <button type="submit" style={styles.primaryBtn}>Secure Login</button>
+      </form>
+
+      <div style={styles.footerPrompt}>
+        Don't have an account yet? <Link to="/signup" style={styles.boldLink}>Create Account</Link>
       </div>
     </div>
   );
 }
 
-export default Login;
+const styles = {
+  authWrapper: { maxWidth: '420px', margin: '70px auto', padding: '35px', border: '1px solid #e2e8f0', borderRadius: '8px', backgroundColor: '#fff', color: '#1a202c', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', fontFamily: 'sans-serif' },
+  formStructure: { display: 'flex', flexDirection: 'column', gap: '18px' },
+  inputGroup: { display: 'flex', flexDirection: 'column', gap: '6px', textAlign: 'left' },
+  label: { fontSize: '13px', fontWeight: '600', color: '#4a5568' },
+  field: { padding: '12px', borderRadius: '5px', border: '1px solid #cbd5e0', fontSize: '14px', backgroundColor: '#fff', color: '#2d3748', outline: 'none' },
+  inlineLink: { fontSize: '13px', color: '#3182ce', textDecoration: 'none' },
+  primaryBtn: { padding: '13px', backgroundColor: '#1a202c', color: '#fff', border: 'none', borderRadius: '5px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer', marginTop: '10px' },
+  footerPrompt: { marginTop: '25px', paddingTop: '20px', borderTop: '1px solid #edf2f7', fontSize: '14px', textAlign: 'center', color: '#718096' },
+  boldLink: { color: '#3182ce', fontWeight: 'bold', textDecoration: 'none' }
+};
