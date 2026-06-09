@@ -796,6 +796,20 @@ export default function Application() {
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [activeNotification, setActiveNotification] = useState('🔥 FLASH SALE: Use coupon code FIRST50 for 50% discount!');
+  const toggleWishlist = (product) => {
+    if (!product) return;
+    setWishlist((prevWishlist) => {
+      const currentList = prevWishlist || [];
+      const exists = currentList.find(item => item.id === product.id);
+      if (exists) {
+        setActiveNotification("💔 Removed from Wishlist");
+        return currentList.filter(item => item.id !== product.id);
+      } else {
+        setActiveNotification("💖 Added to Wishlist!");
+        return [...currentList, product];
+      }
+    });
+  };
 
   useEffect(() => { 
     if(productsList) localStorage.setItem('db_products', JSON.stringify(productsList)); 
@@ -861,28 +875,95 @@ export default function Application() {
         <div style={{ flex: '1' }}>
           <Routes>
   {/* Homepage Route */}
-  <Route path="/" element={<Homepage productsList={productsList || []} products={productsList || []} cart={cart || []} addToCart={addToCart} wishlist={wishlist || []} setWishlist={setWishlist} darkMode={darkMode} setDarkMode={setDarkMode} searchQuery={searchQuery} handleSearchChange={handleSearchChange} suggestions={suggestions || []} activeNotification={activeNotification} isAuthenticated={isAuthenticated} onLogout={handleLogout} />} />
-  
+  <Route 
+  path="/" 
+  element={
+    <Homepage 
+      productsList={productsList} 
+      addToCart={addToCart} 
+      toggleWishlist={toggleWishlist} 
+      wishlist={wishlist} 
+    />
+  } 
+/>
   {/* FIXED: Category Route - handles both 'productsList' and 'products' variables defensively */}
-  <Route path="/category/:type" element={<Category productsList={productsList || []} products={productsList || []} addToCart={addToCart} wishlist={wishlist || []} setWishlist={setWishlist} />} />
-  
+<Route 
+  path="/category/:type" 
+  element={
+    <Category 
+      products={typeof productsList !== 'undefined' ? productsList : []} 
+      wishlist={typeof wishlist !== 'undefined' ? wishlist : JSON.parse(localStorage.getItem('db_wishlist') || '[]')} 
+      toggleWishlist={(product) => {
+        if (!product) return;
+        
+        // 1. Find or create a direct fallback local storage hook
+        const currentWishlist = JSON.parse(localStorage.getItem('db_wishlist') || '[]');
+        const exists = currentWishlist.find(item => item.id === product.id);
+        
+        let updatedWishlist;
+        if (exists) {
+          updatedWishlist = currentWishlist.filter(item => item.id !== product.id);
+          if (typeof setActiveNotification === 'function') setActiveNotification("💔 Removed from Wishlist");
+        } else {
+          updatedWishlist = [...currentWishlist, product];
+          if (typeof setActiveNotification === 'function') setActiveNotification("💖 Added to Wishlist!");
+        }
+
+        // 2. Synchronize across local state layers safely if they exist
+        localStorage.setItem('db_wishlist', JSON.stringify(updatedWishlist));
+        if (typeof setWishlist === 'function') {
+          setWishlist(updatedWishlist);
+        } else {
+          // Force a page update so the heart changes color immediately
+          window.location.reload();
+        }
+      }} 
+    />
+  } 
+/>
   {/* FIXED: Product Detail Route - handles both variations safely */}
-  <Route path="/product/:id" element={<ProductDetail productsList={productsList || []} products={productsList || []} addToCart={addToCart} wishlist={wishlist || []} setWishlist={setWishlist} />} />
-  
+  <Route 
+    path="/product/:id" 
+    element={
+      <ProductDetail 
+        productsList={productsList || []} 
+        wishlist={wishlist || []} 
+        addToCart={addToCart}
+        toggleWishlist={typeof toggleWishlist === 'function' ? toggleWishlist : (p) => {
+          setWishlist(prev => {
+            const list = prev || [];
+            return list.some(item => item.id === p.id) 
+              ? list.filter(item => item.id !== p.id) 
+              : [...list, p];
+          });
+        }} 
+      />
+    } 
+  />
   {/* Other standard pages */}
   <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} isAuthenticated={isAuthenticated} />} />
-  <Route 
+ <Route 
   path="/profile" 
   element={
     <Profile 
       userProfile={userProfile} 
-      setUserProfile={setUserProfile} 
-      onLogout={handleLogout} 
-      isAuthenticated={isAuthenticated} 
-      ordersList={ordersList || []} 
-      orders={ordersList || []} 
-      cartList={cart || []}
-      cart={cart || []} 
+      wishlist={wishlist || []} 
+      onLogout={handleLogout}
+      
+      // CREATE THE DUAL ACTION HANDLER DIRECTLY INLINE HERE
+      moveWishlistToCart={(product) => {
+        if (!product) return;
+        
+        // 1. Add it to the shopping bag
+        if (typeof addToCart === 'function') {
+          addToCart(product);
+        }
+        
+        // 2. Remove it from the wishlist array
+        if (typeof toggleWishlist === 'function') {
+          toggleWishlist(product);
+        }
+      }} 
     />
   } 
 />

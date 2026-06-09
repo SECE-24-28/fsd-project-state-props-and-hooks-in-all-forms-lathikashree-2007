@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
-function Category({ products, toggleWishlist, wishlist }) {
+function Category({ products = [], toggleWishlist, wishlist = [] }) {
   const { type } = useParams();
   
   // --- INTELLIGENCE FILTERS STATE MATRIX ---

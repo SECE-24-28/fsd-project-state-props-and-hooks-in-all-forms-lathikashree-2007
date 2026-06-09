@@ -1,102 +1,116 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 
-function Homepage({ products, toggleWishlist, wishlist }) {
-  const [loading, setLoading] = useState(true);
-  const [timeLeft, setTimeLeft] = useState({ hours: 4, minutes: 34, seconds: 19 });
+// 1. Added explicit fallback defaults to props parameters to prevent "not a function" runtime breaks
+export default function Home({ productsList = [], products = [], addToCart, toggleWishlist = () => {}, wishlist = [] }) {
+  
+  // Choose whichever product array state variable name is active in your application structure
+  const activeCatalogItems = productsList.length > 0 ? productsList : products;
 
-  // Simulate High-Fidelity Skeleton Preloading Sequence Phase
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Structural Countdown Timer Engine Interval
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
-        if (prev.minutes > 0) return { hours: prev.hours, minutes: prev.minutes - 1, seconds: 59 };
-        if (prev.hours > 0) return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        clearInterval(interval);
-        return prev;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
+  // Grab just a few featured styles for the main dashboard display showcase
+  const featuredMerchandise = activeCatalogItems.slice(0, 8);
 
   return (
-    <div style={{ paddingBottom: '60px' }}>
+    <div style={{ fontFamily: 'sans-serif', backgroundColor: '#fdfdfd', color: '#111' }}>
       
-      {/* Dynamic Animated Flash Deal Banner */}
-      <div style={{ background: '#b33939', color: '#fff', padding: '15px 6%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-        <div>
-          <h4 style={{ margin: 0, fontWeight: '800', letterSpacing: '0.5px' }}>⚡ TODAY'S ULTRA FLASH MERCHANDISE DEALS</h4>
-          <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.8 }}>Limited algorithmic supply drop. Pricing scales back up when the clock runs down.</p>
-        </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: '700', uppercase: true }}>CLOSING IN:</span>
-          <div style={{ display: 'flex', gap: '4px' }}>
-            {[`${timeLeft.hours}h`, `${timeLeft.minutes}m`, `${timeLeft.seconds}s`].map((unit, i) => (
-              <span key={i} style={{ background: '#111', color: '#fff', padding: '6px 8px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 'bold', fontFamily: 'monospace' }}>{unit}</span>
-            ))}
-          </div>
-        </div>
+      {/* HERO BANNER SECTION */}
+      <div style={{
+        background: 'linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url("https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600")',
+        backgroundSize: 'cover', backgroundPosition: 'center', height: '450px',
+        display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', color: '#fff', padding: '0 20px'
+      }}>
+        <h1 style={{ fontSize: '48px', fontWeight: '900', margin: '0 0 10px 0', letterSpacing: '2px' }}>EVOLVE YOUR STYLE</h1>
+        <p style={{ fontSize: '18px', margin: '0 0 30px 0', fontWeight: '300', letterSpacing: '0.5px' }}>Flat 50% Off Across New Architecture Drops</p>
+        <Link to="/category/men" style={{
+          background: '#ff3f6c', color: '#fff', textDecoration: 'none', padding: '15px 35px',
+          borderRadius: '4px', fontWeight: 'bold', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px'
+        }}>Shop The Collection</Link>
       </div>
 
-      {/* Main Catalog Workspace Area */}
-      <div style={{ padding: '30px 6%' }}>
-        <h3 style={{ marginBottom: '25px', fontWeight: '800', textTransform: 'uppercase' }}>Curated Style Collections</h3>
-        
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '25px' }}>
-          {loading ? (
-            // Modern Structural Skeleton Wave Loader Arrays
-            Array(4).fill(0).map((_, idx) => (
-              <div key={idx} style={{ background: '#eee', height: '360px', borderRadius: '8px', animation: 'pulse 1.5s infinite ease-in-out' }} />
-            ))
-          ) : (
-            products.map(prod => {
-              const isWish = wishlist.some(w => w.id === prod.id);
+      {/* FEATURED STYLES GRID SHOWCASE */}
+      <div style={{ padding: '60px 4%' }}>
+        <h2 style={{ textAlign: 'center', fontSize: '24px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '40px' }}>
+          Trending Styles Marketplace
+        </h2>
+
+        {featuredMerchandise.length === 0 ? (
+          <p style={{ textAlign: 'center', color: '#777' }}>Syncing global inventory records...</p>
+        ) : (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+            gap: '30px'
+          }}>
+            {featuredMerchandise.map((product) => {
+              // Safe check logic tracking if item is actively bookmarked inside wishlist arrays
+              const isSavedInWishlist = Array.isArray(wishlist) && wishlist.some(item => String(item.id) === String(product.id));
+
               return (
-                <div key={prod.id} className="product-card" style={{ background: 'var(--card-bg, #fff)', border: '1px solid rgba(0,0,0,0.05)', borderRadius: '8px', overflow: 'hidden', position: 'relative', boxShadow: '0 4px 6px rgba(0,0,0,0.02)', transition: 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0 3s cubic-bezier(0.25, 0.8, 0.25, 1)' }}>
-                  <button onClick={() => toggleWishlist(prod)} style={{ position: 'absolute', top: '12px', right: '12px', background: '#fff', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', zIndex: 10, boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>{isWish ? '❤️' : '🤍'}</button>
-                  <Link to={`/product/${prod.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                    <div style={{ overflow: 'hidden', height: '280px' }}>
-                      <img src={prod.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }} className="zoom-image" />
+                <div key={product.id} style={{
+                  background: '#fff', border: '1px solid #eee', borderRadius: '8px',
+                  overflow: 'hidden', position: 'relative', boxShadow: '0 4px 10px rgba(0,0,0,0.02)',
+                  display: 'flex', flexDirection: 'column'
+                }}>
+                  
+                  {/* FIXED: THE ISOLATED WISHLIST OVERLAY CLAMP CONTROL */}
+                  <button 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation(); // Blocks parent image route linkages from intercepting clicks
+                      if (typeof toggleWishlist === 'function') {
+                        toggleWishlist(product);
+                      }
+                    }}
+                    style={{
+                      position: 'absolute', top: '12px', right: '12px', zIndex: 10,
+                      background: '#ffffff', border: 'none', borderRadius: '50%',
+                      width: '34px', height: '34px', display: 'flex', alignItems: 'center',
+                      justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                      fontSize: '16px', transition: 'transform 0.1s ease'
+                    }}
+                  >
+                    {isSavedInWishlist ? '❤️' : '🤍'}
+                  </button>
+
+                  {/* ITEM PRODUCT METADATA VIEW LINKS */}
+                  <Link to={`/product/${product.id}`} style={{ textDecoration: 'none', color: 'inherit', flexGrow: 1 }}>
+                    <div style={{ height: '300px', overflow: 'hidden', backgroundColor: '#f5f5f5' }}>
+                      <img src={product.img} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
-                    <div style={{ padding: '15px' }}>
-                      <span style={{ fontSize: '0.7rem', fontWeight: 'bold', color: '#777', textTransform: 'uppercase' }}>{prod.brand}</span>
-                      <h4 style={{ fontSize: '0.85rem', fontWeight: '600', margin: '4px 0 8px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{prod.name}</h4>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontWeight: '700', fontSize: '1rem' }}>₹{prod.price}</span>
-                        <span style={{ fontSize: '0.75rem', textDecoration: 'line-through', color: '#aaa' }}>₹{prod.oldPrice}</span>
+                    
+                    <div style={{ padding: '15px', textAlign: 'left' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#999', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>{product.brand || "FashionHub"}</span>
+                      <h4 style={{ margin: '0 0 6px 0', fontSize: '14px', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.name}</h4>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontWeight: 'bold', fontSize: '15px', color: '#111' }}>₹{product.price}</span>
                       </div>
                     </div>
                   </Link>
+
+                  {/* DIRECT SHOPPING BAG CAPTURE ACTIONS CONTAINER */}
+                  <div style={{ padding: '0 15px 15px 15px' }}>
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (addToCart) addToCart(product);
+                      }}
+                      style={{
+                        width: '100%', padding: '10px', background: '#111111', color: '#ffffff',
+                        border: 'none', borderRadius: '4px', fontSize: '13px', fontWeight: '700',
+                        cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.5px'
+                      }}
+                    >
+                      Add To Bag
+                    </button>
+                  </div>
+
                 </div>
               );
-            })
-          )}
-        </div>
+            })}
+          </div>
+        )}
       </div>
 
-      {/* Global CSS Injectors for High-End UX micro-interactions */}
-      <style>{`
-        .product-card:hover {
-          transform: translateY(-6px);
-          box-shadow: 0 12px 20px rgba(0,0,0,0.1) !important;
-        }
-        .product-card:hover .zoom-image {
-          transform: scale(1.04);
-        }
-        @keyframes pulse {
-          0% { opacity: 0.6; }
-          50% { opacity: 1; }
-          100% { opacity: 0.6; }
-        }
-      `}</style>
     </div>
   );
 }
-
-export default Homepage;
